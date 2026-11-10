@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function UploadComponent({ onUpload, isUploading }) {
   const [file, setFile] = useState(null);
+  const formRef = useRef(null);
 
   async function handleSubmit(event) {
     event.preventDefault();
     if (file && await onUpload(file)) {
       setFile(null);
-      event.currentTarget.reset();
+      formRef.current?.reset();
     }
   }
 
   return (
-    <form className="upload-form" onSubmit={handleSubmit}>
+    <form ref={formRef} className="upload-form" onSubmit={handleSubmit}>
       <label className="file-picker">
         <span className="file-picker__symbol" aria-hidden="true">+</span>
         <span className="file-picker__text">
