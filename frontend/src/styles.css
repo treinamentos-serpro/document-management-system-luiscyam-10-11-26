@@ -230,12 +230,16 @@ h2 {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 42px;
   padding: 0 17px;
   border: 1px solid transparent;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  text-decoration: none;
   transition: background-color 140ms ease, border-color 140ms ease;
 }
 

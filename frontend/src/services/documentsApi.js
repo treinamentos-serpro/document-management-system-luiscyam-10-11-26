@@ -24,15 +24,3 @@ export async function uploadDocument(file) {
   });
   return response.json();
 }
-
-export async function downloadDocument(document) {
-  const response = await request(
-    `/documents/${encodeURIComponent(document.id)}/download`
-  );
-  const objectUrl = URL.createObjectURL(await response.blob());
-  const link = window.document.createElement('a');
-  link.href = objectUrl;
-  link.download = document.originalName;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-}

@@ -20,7 +20,7 @@ function createDocumentController(documentService) {
     }
 
     return res.download(result.filePath, result.document.originalName, (error) => {
-      if (error && !res.headersSent) {
+      if (error) {
         next(error);
       }
     });

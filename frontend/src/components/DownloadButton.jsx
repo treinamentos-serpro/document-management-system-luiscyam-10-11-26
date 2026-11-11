@@ -1,7 +1,10 @@
-export default function DownloadButton({ onClick, isDownloading }) {
+export default function DownloadButton({ documentId }) {
   return (
-    <button className="button button--quiet" type="button" onClick={onClick} disabled={isDownloading}>
-      {isDownloading ? 'Baixando...' : 'Baixar'}
-    </button>
+    <a
+      className="button button--quiet"
+      href={`/api/documents/${encodeURIComponent(documentId)}/download`}
+    >
+      Baixar
+    </a>
   );
 }

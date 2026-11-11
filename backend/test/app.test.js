@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { once } = require('node:events');
-const { mkdtemp, rm } = require('node:fs/promises');
+const { mkdtemp, readdir, rm, unlink } = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const appModule = require('../src/app');
@@ -12,6 +12,13 @@ const app = appModule;
 test('o app backend é exportado', () => {
   assert.ok(app, 'o app deve estar definido');
   assert.strictEqual(typeof app, 'function', 'o app Express deve ser uma função');
+});
+
+test('o limite de upload precisa ser um inteiro positivo', () => {
+  assert.throws(
+    () => appModule.createApp({ maxFileBytes: 0 }),
+    /MAX_UPLOAD_BYTES deve ser um inteiro positivo/
+  );
 });
 
 test('a API permite enviar, listar e baixar documentos', async (t) => {
@@ -33,6 +40,15 @@ test('a API permite enviar, listar e baixar documentos', async (t) => {
   });
   assert.strictEqual(emptyUpload.status, 400);
 
+  const unexpectedFieldForm = new FormData();
+  unexpectedFieldForm.append('unexpected', 'value');
+  unexpectedFieldForm.append('file', new Blob(['conteudo']), 'documento.txt');
+  const unexpectedFieldUpload = await fetch(`${baseUrl}/upload`, {
+    method: 'POST',
+    body: unexpectedFieldForm,
+  });
+  assert.strictEqual(unexpectedFieldUpload.status, 400);
+
   const oversizedForm = new FormData();
   oversizedForm.append('file', new Blob(['x'.repeat(1025)]), 'large.txt');
   const oversizedUpload = await fetch(`${baseUrl}/upload`, {
@@ -47,7 +63,7 @@ test('a API permite enviar, listar e baixar documentos', async (t) => {
     method: 'POST',
     body: uploadForm,
   });
-  assert.strictEqual(uploadResponse.status, 201);
+  assert.strictEqual(uploadResponse.status, 201, await uploadResponse.clone().text());
 
   const document = await uploadResponse.json();
   assert.strictEqual(document.originalName, 'documento.txt');
@@ -63,6 +79,12 @@ test('a API permite enviar, listar e baixar documentos', async (t) => {
   const downloadResponse = await fetch(`${baseUrl}/documents/${document.id}/download`);
   assert.strictEqual(downloadResponse.status, 200);
   assert.strictEqual(await downloadResponse.text(), 'conteudo de teste');
+
+  const [storedFilename] = await readdir(storageDirectory);
+  await unlink(path.join(storageDirectory, storedFilename));
+  const unreadableDocument = await fetch(`${baseUrl}/documents/${document.id}/download`);
+  assert.strictEqual(unreadableDocument.status, 500);
+  assert.ok(!(await unreadableDocument.text()).includes(storageDirectory));
 
   const missingDocument = await fetch(`${baseUrl}/documents/missing/download`);
   assert.strictEqual(missingDocument.status, 404);

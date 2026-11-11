@@ -43,7 +43,7 @@ Entregar uma aplicação web que permita a usuários enviar, consultar e baixar 
 | --- | --- |
 | RNF-01 | Os arquivos devem permanecer no filesystem local da aplicação em `backend/storage`, com Multer `diskStorage`; não usar serviços ou provedores de armazenamento externos. |
 | RNF-02 | Os metadados devem permanecer em memória nesta fase. Não se promete retenção do catálogo após reinício do processo. |
-| RNF-03 | Configurações operacionais devem seguir 12-Factor; `PORT` configura a porta e `MAX_UPLOAD_BYTES` configura o tamanho máximo do arquivo (padrão: 10 MiB). |
+| RNF-03 | Configurações operacionais devem seguir 12-Factor; `PORT` configura a porta, `HOST` configura a interface de escuta (padrão: `127.0.0.1`) e `MAX_UPLOAD_BYTES` configura o tamanho máximo do arquivo (padrão: 10 MiB, inteiro positivo). |
 | RNF-04 | O backend deve usar Node.js, Express e CommonJS; o frontend deve usar React, Vite e ESM; o código permanecerá em JavaScript. |
 | RNF-05 | O backend deve seguir o fluxo de dependências `routes -> controllers -> services -> repositories`, sem camadas internas conhecerem Express ou dependerem de camadas externas. |
 | RNF-06 | O frontend deve chamar a API com `fetch` sob o prefixo `/api`; o proxy de desenvolvimento do Vite remove esse prefixo antes de encaminhar as rotas ao backend. |
@@ -110,6 +110,7 @@ As rotas do backend são `/upload`, `/documents` e `/documents/:id/download`. No
 - O frontend usa React com componentes funcionais e Hooks, separando interface em `components/`, páginas em `pages/` e chamadas HTTP em `services/`. Requisições usam `fetch` e o prefixo `/api` do proxy Vite.
 - Manter nomes de símbolos em inglês, mensagens e comentários voltados ao usuário em português, e privilegiar funções pequenas e dependências já presentes.
 - O primeiro incremento opera como aplicação local de usuário único sem autenticação; não deve ser exposto como serviço multiusuário. O frontend chama a API por `/api` e apresenta upload, lista e download.
+- O backend escuta em `127.0.0.1` por padrão. Alterar `HOST` para uma interface de rede expõe uma API sem autenticação e exige controles adicionais antes de uso remoto.
 
 ## 8. Plano de execução
 

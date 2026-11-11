@@ -23,6 +23,7 @@ export default function UploadComponent({ onUpload, isUploading }) {
         <input
           type="file"
           name="file"
+          disabled={isUploading}
           onChange={(event) => setFile(event.target.files?.[0] || null)}
           aria-label="Selecionar documento"
         />

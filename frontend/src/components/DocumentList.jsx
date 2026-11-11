@@ -23,7 +23,7 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-export default function DocumentList({ documents, isLoading, downloadingId, onDownload }) {
+export default function DocumentList({ documents, isLoading }) {
   if (isLoading) {
     return <p className="list-message" role="status">Carregando documentos...</p>;
   }
@@ -51,8 +51,7 @@ export default function DocumentList({ documents, isLoading, downloadingId, onDo
               <td data-label="Enviado em">{formatDate(document.uploadedAt)}</td>
               <td className="document-actions">
                 <DownloadButton
-                  onClick={() => onDownload(document)}
-                  isDownloading={downloadingId === document.id}
+                  documentId={document.id}
                 />
               </td>
             </tr>

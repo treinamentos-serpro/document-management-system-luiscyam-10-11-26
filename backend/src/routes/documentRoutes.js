@@ -10,7 +10,10 @@ function createDocumentRoutes({ documentController, storageDirectory, maxFileByt
     destination: storageDirectory,
     filename: (req, file, callback) => callback(null, crypto.randomUUID()),
   });
-  const upload = multer({ storage, limits: { fileSize: maxFileBytes } });
+  const upload = multer({
+    storage,
+    limits: { fileSize: maxFileBytes, files: 1, fields: 0, parts: 2 },
+  });
   const router = express.Router();
 
   router.post('/upload', upload.single('file'), documentController.upload);

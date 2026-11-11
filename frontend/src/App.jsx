@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react';
 import DocumentList from './components/DocumentList.jsx';
 import UploadComponent from './components/UploadComponent.jsx';
-import { downloadDocument, listDocuments, uploadDocument } from './services/documentsApi.js';
+import { listDocuments, uploadDocument } from './services/documentsApi.js';
 import './styles.css';
 
 export default function App() {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDocumentListUnavailable, setIsDocumentListUnavailable] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [downloadingId, setDownloadingId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     listDocuments()
       .then(setDocuments)
-      .catch((error) => setErrorMessage(error.message))
+      .catch((error) => {
+        setErrorMessage(error.message);
+        setIsDocumentListUnavailable(true);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -25,28 +28,23 @@ export default function App() {
     setStatusMessage('');
 
     try {
-      await uploadDocument(file);
-      setDocuments(await listDocuments());
+      const document = await uploadDocument(file);
       setStatusMessage(`${file.name} foi enviado.`);
+
+      try {
+        setDocuments(await listDocuments());
+        setIsDocumentListUnavailable(false);
+      } catch (error) {
+        setDocuments((currentDocuments) => [...currentDocuments, document]);
+        setErrorMessage(`O documento foi enviado, mas a lista não pôde ser atualizada: ${error.message}`);
+      }
+
       return true;
     } catch (error) {
       setErrorMessage(error.message);
       return false;
     } finally {
       setIsUploading(false);
-    }
-  }
-
-  async function handleDownload(document) {
-    setDownloadingId(document.id);
-    setErrorMessage('');
-
-    try {
-      await downloadDocument(document);
-    } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setDownloadingId(null);
     }
   }
 
@@ -97,12 +95,9 @@ export default function App() {
             </div>
             <span className="section-heading__count">{documents.length}</span>
           </div>
-          <DocumentList
-            documents={documents}
-            isLoading={isLoading}
-            downloadingId={downloadingId}
-            onDownload={handleDownload}
-          />
+          {isDocumentListUnavailable && !isLoading
+            ? <p className="list-message" role="status">Não foi possível carregar os documentos.</p>
+            : <DocumentList documents={documents} isLoading={isLoading} />}
         </section>
       </main>
 

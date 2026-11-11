@@ -10,12 +10,19 @@ const createDocumentController = require('./controllers/documentController');
 const createDocumentRoutes = require('./routes/documentRoutes');
 
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '127.0.0.1';
 const DEFAULT_MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 function createApp({
   storageDirectory = path.resolve(__dirname, '../storage'),
-  maxFileBytes = Number(process.env.MAX_UPLOAD_BYTES) || DEFAULT_MAX_FILE_BYTES,
+  maxFileBytes = process.env.MAX_UPLOAD_BYTES === undefined
+    ? DEFAULT_MAX_FILE_BYTES
+    : Number(process.env.MAX_UPLOAD_BYTES),
 } = {}) {
+  if (!Number.isSafeInteger(maxFileBytes) || maxFileBytes <= 0) {
+    throw new Error('MAX_UPLOAD_BYTES deve ser um inteiro positivo.');
+  }
+
   const app = express();
   const documentRepository = createDocumentRepository();
   const documentService = createDocumentService(documentRepository);
@@ -50,8 +57,8 @@ function createApp({
 const app = createApp();
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`DMS backend ouvindo na porta ${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`DMS backend ouvindo em ${HOST}:${PORT}`);
   });
 }
 
